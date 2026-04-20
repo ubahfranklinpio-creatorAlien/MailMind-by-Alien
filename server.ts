@@ -17,22 +17,22 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  app.get("/api/emails", async (req, res) => {
-    const { EMAIL_USER, EMAIL_PASSWORD, IMAP_HOST } = process.env;
+  app.post("/api/emails", async (req, res) => {
+    const { user, password, host, port } = req.body;
 
-    if (!EMAIL_USER || !EMAIL_PASSWORD) {
+    if (!user || !password) {
       return res.status(400).json({
-        error: "Configuration Required",
-        message: "Please configure EMAIL_USER and EMAIL_PASSWORD in your environment variables to fetch emails."
+        error: "Credentials Required",
+        message: "Email and password are required to fetch emails."
       });
     }
 
     try {
       const emails = await fetchRecentEmails({
-        user: EMAIL_USER,
-        password: EMAIL_PASSWORD,
-        host: IMAP_HOST || "imap.gmail.com",
-        port: parseInt(process.env.IMAP_PORT || "993"),
+        user: user,
+        password: password,
+        host: host || "imap.gmail.com",
+        port: port || 993,
       });
 
       res.json({ emails });

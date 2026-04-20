@@ -1,52 +1,60 @@
-import { useEffect, useState } from "react";
-import { Mail, Sparkles, Loader2, Inbox, AlertCircle, CalendarDays, Search } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Mail, Sparkles, Loader2, Inbox, AlertCircle, CalendarDays, Search, LogOut } from "lucide-react";
 import { EmailData } from "./lib/imap";
 import { processEmails } from "./lib/gemini";
 import { MailMindData, Category } from "./lib/types";
 import { cn } from "./lib/utils";
 import { EmailCard } from "./components/EmailCard";
 import { ScheduleView } from "./components/ScheduleView";
+import { SignInModal } from "./components/SignInModal";
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState<MailMindData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | 'All'>('All');
   const [activeView, setActiveView] = useState<'inboxes' | 'schedule'>('inboxes');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
     document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
   };
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch("/api/emails");
-        const json = await res.json();
-        
-        if (!res.ok) {
-          throw new Error(json.message || json.error || "Failed to fetch emails");
-        }
-
-        const rawEmails: EmailData[] = json.emails;
-        
-        // Pass to Gemini AI for categorization and schedule extraction
-        const processedData = await processEmails(rawEmails);
-        setData(processedData);
-        
-        // Show modal as soon as we have the schedule
-        // setIsModalOpen(true);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const handleSignIn = async (email: string, appPassword: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/emails", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: email, password: appPassword })
+      });
+      
+      const json = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(json.message || json.error || "Failed to connect to your mailbox.");
       }
-    }
 
-    fetchData();
-  }, []);
+      const rawEmails: EmailData[] = json.emails;
+      const processedData = await processEmails(rawEmails);
+      setData(processedData);
+      setIsAuthenticated(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setData(null);
+    setError(null);
+    setActiveView('inboxes');
+  };
 
   const categories: (Category | 'All')[] = ['All', 'Appointments', 'Orders', 'School/Class', 'Private', 'Other'];
 
@@ -58,6 +66,17 @@ export default function App() {
                           e.summary.toLowerCase().includes(searchLower);
     return matchesCategory && matchesSearch;
   }) || [];
+
+  if (!isAuthenticated) {
+    return (
+      <div 
+        className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden pointer-events-auto"
+        onMouseMove={handleMouseMove}
+      >
+        <SignInModal onSignIn={handleSignIn} isLoading={loading} error={error} />
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -92,16 +111,26 @@ export default function App() {
           </button>
         </nav>
 
-        <div className="mt-auto p-4 glass rounded-2xl">
-          <p className="text-xs text-gray-400 mb-2">Connected Intelligence</p>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <p className="text-xs font-medium text-gray-600 truncate">IMAP Sync Active</p>
+        <div className="mt-auto flex flex-col gap-4">
+          <div className="p-4 glass rounded-2xl">
+            <p className="text-xs text-gray-400 mb-2">Connected Intelligence</p>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <p className="text-xs font-medium text-gray-600 truncate">IMAP Sync Active</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <p className="text-xs font-medium text-gray-600 truncate">Gemini AI Active</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <p className="text-xs font-medium text-gray-600 truncate">Gemini AI Active</p>
-          </div>
+          
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 p-3 rounded-xl font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all border border-transparent hover:border-red-100"
+          >
+            <LogOut className="w-5 h-5" />
+            Sign Out
+          </button>
         </div>
       </aside>
 
@@ -174,21 +203,6 @@ export default function App() {
             </div>
             <p className="mt-4 text-green-800 font-medium tracking-wide animate-pulse">Consulting the AI...</p>
           </div>
-        ) : error ? (
-          <div className="flex-1 glass rounded-3xl m-2 p-8 text-center flex flex-col items-center justify-center">
-            <div className="bg-red-50 text-red-500 p-4 rounded-full mb-4">
-              <AlertCircle className="w-8 h-8" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Connection Required</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <div className="text-sm bg-white/50 border border-white/60 rounded-lg p-4 text-left w-full max-w-md">
-              <p className="font-semibold mb-2 text-gray-800">How to fix:</p>
-              <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                <li>Add your <code className="bg-white px-1 py-0.5 rounded shadow-sm">EMAIL_USER</code> and <code className="bg-white px-1 py-0.5 rounded shadow-sm">EMAIL_PASSWORD</code> to the environment variables.</li>
-                <li>Make sure to use an App Password if using Gmail or Yahoo.</li>
-              </ul>
-            </div>
-          </div>
         ) : (
           <section className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-12 w-full">
             {activeView === 'schedule' ? (
@@ -214,3 +228,4 @@ export default function App() {
     </div>
   );
 }
+
