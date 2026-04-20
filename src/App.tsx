@@ -1,0 +1,216 @@
+import { useEffect, useState } from "react";
+import { Mail, Sparkles, Loader2, Inbox, AlertCircle, CalendarDays, Search } from "lucide-react";
+import { EmailData } from "./lib/imap";
+import { processEmails } from "./lib/gemini";
+import { MailMindData, Category } from "./lib/types";
+import { cn } from "./lib/utils";
+import { EmailCard } from "./components/EmailCard";
+import { ScheduleView } from "./components/ScheduleView";
+
+export default function App() {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<MailMindData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<Category | 'All'>('All');
+  const [activeView, setActiveView] = useState<'inboxes' | 'schedule'>('inboxes');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
+    document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch("/api/emails");
+        const json = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(json.message || json.error || "Failed to fetch emails");
+        }
+
+        const rawEmails: EmailData[] = json.emails;
+        
+        // Pass to Gemini AI for categorization and schedule extraction
+        const processedData = await processEmails(rawEmails);
+        setData(processedData);
+        
+        // Show modal as soon as we have the schedule
+        // setIsModalOpen(true);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  const categories: (Category | 'All')[] = ['All', 'Appointments', 'Orders', 'School/Class', 'Private', 'Other'];
+
+  const filteredEmails = data?.emails.filter(e => {
+    const matchesCategory = activeCategory === 'All' || e.category === activeCategory;
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = e.subject.toLowerCase().includes(searchLower) || 
+                          e.from.toLowerCase().includes(searchLower) ||
+                          e.summary.toLowerCase().includes(searchLower);
+    return matchesCategory && matchesSearch;
+  }) || [];
+
+  return (
+    <div 
+      className="flex w-full h-screen relative p-6 gap-6 max-w-[1400px] mx-auto pointer-events-auto"
+      onMouseMove={handleMouseMove}
+    >
+      
+      {/* Sidebar */}
+      <aside className="w-64 glass rounded-3xl p-6 flex flex-col gap-8 hidden md:flex h-full z-10 transition-shadow hover:shadow-xl hover:shadow-emerald-900/5">
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="MailMind Logo" className="w-10 h-10 rounded-xl object-contain bg-emerald-100/50 shadow-sm" />
+          <div>
+            <h1 className="font-bold text-lg leading-tight text-gray-900">MailMind</h1>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400">By Alien</p>
+          </div>
+        </div>
+
+        <nav className="flex flex-col gap-2">
+          <button 
+             onClick={() => setActiveView('inboxes')}
+             className={`flex items-center gap-3 p-3 rounded-xl font-medium transition-colors w-full text-left ${activeView === 'inboxes' ? 'bg-white/40 text-emerald-700 border border-white/60 shadow-sm' : 'text-gray-500 hover:bg-white/40 border border-transparent'}`}
+          >
+            <Inbox className="w-5 h-5" />
+            All Inboxes
+          </button>
+          <button 
+             onClick={() => setActiveView('schedule')}
+             className={`flex items-center gap-3 p-3 rounded-xl font-medium transition-colors w-full text-left ${activeView === 'schedule' ? 'bg-white/40 text-emerald-700 border border-white/60 shadow-sm' : 'text-gray-500 hover:bg-white/40 border border-transparent'}`}
+          >
+            <CalendarDays className="w-5 h-5" />
+            Daily Schedule
+          </button>
+        </nav>
+
+        <div className="mt-auto p-4 glass rounded-2xl">
+          <p className="text-xs text-gray-400 mb-2">Connected Intelligence</p>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <p className="text-xs font-medium text-gray-600 truncate">IMAP Sync Active</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <p className="text-xs font-medium text-gray-600 truncate">Gemini AI Active</p>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col gap-6 h-full overflow-hidden z-10">
+        
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:px-2 gap-4">
+          
+          {/* Mobile View Toggle */}
+          <div className="flex md:hidden w-full glass rounded-xl p-1 gap-1">
+             <button 
+                onClick={() => setActiveView('inboxes')}
+                className={`flex-1 flex justify-center items-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'inboxes' ? 'bg-white shadow-sm text-emerald-700' : 'text-gray-500'}`}
+             >
+                <Inbox className="w-4 h-4" /> Inboxes
+             </button>
+             <button 
+                onClick={() => setActiveView('schedule')}
+                className={`flex-1 flex justify-center items-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'schedule' ? 'bg-white shadow-sm text-emerald-700' : 'text-gray-500'}`}
+             >
+                <CalendarDays className="w-4 h-4" /> Schedule
+             </button>
+          </div>
+
+          {activeView === 'inboxes' && (
+            <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2 sm:pb-0 hide-scroll-if-short w-full sm:w-auto flex-1">
+              {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={cn(
+                      "whitespace-nowrap px-4 py-2 rounded-full font-medium text-sm transition-all shadow-sm border",
+                      activeCategory === cat 
+                        ? "bg-white border-white text-gray-800" 
+                        : "glass border-white/40 text-gray-500 hover:bg-white/40"
+                    )}
+                  >
+                    {cat === 'All' ? 'All Categories' : cat}
+                  </button>
+                ))}
+            </div>
+          )}
+
+          {data && (
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-end ml-auto">
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text" 
+                  autoFocus={true}
+                  placeholder="Search emails..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full glass pl-9 pr-4 py-2 rounded-full text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all border-white/60 placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* Content Area */}
+        {loading ? (
+          <div className="flex-1 flex flex-col items-center justify-center glass rounded-3xl m-2">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-t-2 border-green-500 animate-spin"></div>
+              <div className="absolute inset-2 rounded-full border-t-2 border-emerald-400 animate-spin-reverse"></div>
+              <Mail className="absolute inset-0 m-auto w-6 h-6 text-green-600 animate-pulse" />
+            </div>
+            <p className="mt-4 text-green-800 font-medium tracking-wide animate-pulse">Consulting the AI...</p>
+          </div>
+        ) : error ? (
+          <div className="flex-1 glass rounded-3xl m-2 p-8 text-center flex flex-col items-center justify-center">
+            <div className="bg-red-50 text-red-500 p-4 rounded-full mb-4">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Connection Required</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <div className="text-sm bg-white/50 border border-white/60 rounded-lg p-4 text-left w-full max-w-md">
+              <p className="font-semibold mb-2 text-gray-800">How to fix:</p>
+              <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                <li>Add your <code className="bg-white px-1 py-0.5 rounded shadow-sm">EMAIL_USER</code> and <code className="bg-white px-1 py-0.5 rounded shadow-sm">EMAIL_PASSWORD</code> to the environment variables.</li>
+                <li>Make sure to use an App Password if using Gmail or Yahoo.</li>
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <section className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-12 w-full">
+            {activeView === 'schedule' ? (
+              <ScheduleView items={data?.scheduleItems || []} />
+            ) : (
+              <div className="grid grid-cols-1 align-content-start gap-4">
+                {filteredEmails.length > 0 ? (
+                  filteredEmails.map(email => (
+                    <EmailCard key={email.id} email={email} />
+                  ))
+                ) : (
+                  <div className="col-span-full py-16 flex flex-col items-center justify-center text-gray-400 glass rounded-3xl">
+                    <Inbox className="w-12 h-12 mb-4 opacity-50" />
+                    <p className="font-medium text-lg text-gray-500">No emails found for this specific view.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+      </main>
+
+    </div>
+  );
+}
