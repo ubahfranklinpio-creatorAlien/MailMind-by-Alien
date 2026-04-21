@@ -2,7 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import dotenv from "dotenv";
-import { fetchRecentEmails } from "./src/lib/imap.js";
+import { fetchRecentEmails } from "./src/lib/imap";
 
 dotenv.config();
 

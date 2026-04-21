@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Shield, ArrowRight, Loader2, Lock, BrainCircuit } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface SignInModalProps {
   onSignIn: (email: string, password: string) => Promise<void>;
@@ -39,53 +39,31 @@ export function SignInModal({ onSignIn, isLoading, error }: SignInModalProps) {
 
         <div className="relative z-10 p-10 flex flex-col items-center">
           
-          {/* Animated Glass Envelope */}
-          <div className="relative w-32 h-32 mb-8">
-            <svg viewBox="0 0 100 80" className="w-full h-full drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">
-              {/* Envelope Body */}
-              <path 
-                d="M5 20 L95 20 L95 70 L5 70 Z" 
-                fill="rgba(255,255,255,0.05)" 
-                stroke="rgba(16,185,129,0.5)" 
-                strokeWidth="1.5"
-                className="backdrop-blur-md"
-              />
-              
-              {/* Inside Glow (Blooms when opening) */}
-              <motion.circle
-                cx="50" cy="45" r="5"
-                initial={{ opacity: 0, scale: 1 }}
-                animate={isOpening ? { opacity: 0.8, scale: 8, fill: '#10b981' } : {}}
-                transition={{ duration: 1, ease: "easeOut" }}
-                filter="blur(5px)"
-              />
-
-              {/* Envelope Flap */}
-              <motion.path
-                d="M5 20 L50 45 L95 20 Z"
-                fill="rgba(255,255,255,0.08)"
-                stroke="rgba(16,185,129,0.6)"
-                strokeWidth="1.5"
-                initial={{ d: "M5 20 L50 45 L95 20 Z" }}
-                animate={isOpening ? { d: "M5 20 L50 -10 L95 20 Z" } : { d: "M5 20 L50 45 L95 20 Z" }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-              />
-
-              {/* Brain Icon on Flap */}
-              <motion.g
-                initial={{ y: 28, x: 42, scale: 0.6 }}
-                animate={isOpening ? { y: -5, opacity: 1, scale: 0.8 } : { y: 28, x: 42, scale: 0.6 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                className="text-emerald-400"
-              >
-                <BrainCircuit size={20} strokeWidth={2.5} />
-              </motion.g>
-            </svg>
-          </div>
+          {/* App Logo */}
+          <motion.div 
+            className="relative w-28 h-28 mb-8"
+            animate={isOpening ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse" />
+            <img 
+              src="/logo.jpg" 
+              alt="MailMind Logo" 
+              className="w-full h-full object-contain relative z-10 glass rounded-3xl p-2 border-white/40 shadow-xl" 
+            />
+            
+            {/* Inside Glow (Blooms when opening) */}
+            <motion.div
+              className="absolute inset-0 bg-emerald-400 rounded-full blur-xl z-0"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={isOpening ? { opacity: 0.6, scale: 2.5 } : {}}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
+          </motion.div>
 
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Access MailMind</h2>
-            <p className="text-gray-500 max-w-xs mx-auto">Connect your workspace intelligence to synchronize your agenda.</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">MailMind</h2>
+            <p className="text-gray-500 font-medium">Lets organize your Mail for you</p>
           </div>
 
           <form onSubmit={handleSubmit} className="w-full space-y-4">

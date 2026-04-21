@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Mail, Sparkles, Loader2, Inbox, AlertCircle, CalendarDays, Search, LogOut } from "lucide-react";
-import { EmailData } from "./lib/imap";
-import { processEmails } from "./lib/gemini";
-import { MailMindData, Category } from "./lib/types";
-import { cn } from "./lib/utils";
-import { EmailCard } from "./components/EmailCard";
-import { ScheduleView } from "./components/ScheduleView";
-import { SignInModal } from "./components/SignInModal";
+import { EmailData } from "@/lib/imap";
+import { processEmails } from "@/lib/gemini";
+import { MailMindData, Category } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { EmailCard } from "@/components/EmailCard";
+import { ScheduleView } from "@/components/ScheduleView";
+import { SignInModal } from "@/components/SignInModal";
+import { LandingPage } from "@/components/LandingPage";
 
 export default function App() {
   const [loading, setLoading] = useState(false);
@@ -16,11 +17,16 @@ export default function App() {
   const [activeView, setActiveView] = useState<'inboxes' | 'schedule'>('inboxes');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
-    document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
-  };
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
+      document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const handleSignIn = async (email: string, appPassword: string) => {
     setLoading(true);
@@ -42,6 +48,7 @@ export default function App() {
       const processedData = await processEmails(rawEmails);
       setData(processedData);
       setIsAuthenticated(true);
+      setShowSignIn(false);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -54,6 +61,7 @@ export default function App() {
     setData(null);
     setError(null);
     setActiveView('inboxes');
+    setShowSignIn(false);
   };
 
   const categories: (Category | 'All')[] = ['All', 'Appointments', 'Orders', 'School/Class', 'Private', 'Other'];
@@ -68,20 +76,29 @@ export default function App() {
   }) || [];
 
   if (!isAuthenticated) {
-    return (
-      <div 
-        className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden pointer-events-auto"
-        onMouseMove={handleMouseMove}
-      >
-        <SignInModal onSignIn={handleSignIn} isLoading={loading} error={error} />
-      </div>
-    );
+    if (showSignIn) {
+      return (
+        <div 
+          className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden pointer-events-auto"
+        >
+          {/* Back to landing button */}
+          <button 
+            onClick={() => setShowSignIn(false)}
+            className="fixed top-8 left-8 z-50 text-gray-400 hover:text-emerald-600 font-bold flex items-center gap-2 group transition-colors"
+          >
+            ← Back to Landing
+          </button>
+          <SignInModal onSignIn={handleSignIn} isLoading={loading} error={error} />
+        </div>
+      );
+    }
+    
+    return <LandingPage onGetStarted={() => setShowSignIn(true)} />;
   }
 
   return (
     <div 
       className="flex w-full h-screen relative p-6 gap-6 max-w-[1400px] mx-auto pointer-events-auto"
-      onMouseMove={handleMouseMove}
     >
       
       {/* Sidebar */}
@@ -93,6 +110,7 @@ export default function App() {
             <p className="text-[10px] uppercase tracking-widest text-gray-400">By Alien</p>
           </div>
         </div>
+
 
         <nav className="flex flex-col gap-2">
           <button 

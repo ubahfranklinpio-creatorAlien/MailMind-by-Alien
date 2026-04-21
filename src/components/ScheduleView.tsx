@@ -1,6 +1,6 @@
-import { ScheduleItem, getCategoryStyle } from "../lib/types";
+import { ScheduleItem, getCategoryStyle } from "@/lib/types";
 import { CalendarDays, ShoppingBag, BookOpen, Lock, Tag, Clock, MapPin } from "lucide-react";
-import { cn } from "../lib/utils";
+import { cn } from "@/lib/utils";
 
 const CategoryIcon = ({ category, className }: { category: string, className?: string }) => {
   switch (category) {
