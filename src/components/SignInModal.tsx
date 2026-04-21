@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Shield, ArrowRight, Loader2, Lock, BrainCircuit } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 interface SignInModalProps {
   onSignIn: (email: string, password: string) => Promise<void>;
@@ -47,7 +47,7 @@ export function SignInModal({ onSignIn, isLoading, error }: SignInModalProps) {
           >
             <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse" />
             <img 
-              src="/logo.png" 
+              src="/logo.jpg" 
               alt="MailMind Logo" 
               className="w-full h-full object-contain relative z-10 glass rounded-3xl p-2 border-white/40 shadow-xl" 
             />
