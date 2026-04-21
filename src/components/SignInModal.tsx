@@ -47,7 +47,7 @@ export function SignInModal({ onSignIn, isLoading, error }: SignInModalProps) {
           >
             <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse" />
             <img 
-              src="/logo.jpg" 
+              src="/logo.png" 
               alt="MailMind Logo" 
               className="w-full h-full object-contain relative z-10 glass rounded-3xl p-2 border-white/40 shadow-xl" 
             />
