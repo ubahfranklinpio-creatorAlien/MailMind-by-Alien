@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Mail, Sparkles, Loader2, Inbox, AlertCircle, CalendarDays, Search, LogOut } from "lucide-react";
-import { EmailData } from "@/lib/imap";
-import { processEmails } from "@/lib/gemini";
-import { MailMindData, Category } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { EmailCard } from "@/components/EmailCard";
-import { ScheduleView } from "@/components/ScheduleView";
-import { SignInModal } from "@/components/SignInModal";
-import { LandingPage } from "@/components/LandingPage";
+import { EmailData } from "./lib/imap";
+import { processEmails } from "./lib/gemini";
+import { MailMindData, Category } from "./lib/types";
+import { cn } from "./lib/utils";
+import { EmailCard } from "./components/EmailCard";
+import { ScheduleView } from "./components/ScheduleView";
+import { SignInModal } from "./components/SignInModal";
+import { LandingPage } from "./components/LandingPage";
 
 export default function App() {
   const [loading, setLoading] = useState(false);
