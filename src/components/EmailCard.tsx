@@ -1,8 +1,8 @@
 import React from "react";
-import { CategorizedEmail, getCategoryStyle } from "@/lib/types";
+import { CategorizedEmail, getCategoryStyle } from "../lib/types";
 import { Mail, Clock, CalendarDays, ShoppingBag, BookOpen, Lock, Tag } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 
 interface EmailCardProps {
   email: CategorizedEmail;

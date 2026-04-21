@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Mail, Sparkles, Loader2, Inbox, AlertCircle, CalendarDays, Search, LogOut } from "lucide-react";
-import { EmailData } from "./lib/imap";
+import type { EmailData } from "./lib/imap";
 import { processEmails } from "./lib/gemini";
 import { MailMindData, Category } from "./lib/types";
 import { cn } from "./lib/utils";

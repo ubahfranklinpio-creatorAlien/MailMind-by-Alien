@@ -6,7 +6,7 @@ import {
   Key, Brain, LayoutDashboard,
   GraduationCap, Briefcase, Heart, ShieldCheck
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 
 interface LandingPageProps {
   onGetStarted: () => void;
