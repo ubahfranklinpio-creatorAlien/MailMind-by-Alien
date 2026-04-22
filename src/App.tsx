@@ -104,7 +104,7 @@ export default function App() {
       {/* Sidebar */}
       <aside className="w-64 glass rounded-3xl p-6 flex flex-col gap-8 hidden md:flex h-full z-10 transition-shadow hover:shadow-xl hover:shadow-emerald-900/5">
         <div className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="MailMind Logo" className="w-10 h-10 rounded-xl object-contain bg-emerald-100/50 shadow-sm" />
+          <img src="/logo.png" alt="MailMind Logo" className="w-10 h-10 rounded-xl object-contain bg-emerald-100/50 shadow-sm" />
           <div>
             <h1 className="font-bold text-lg leading-tight text-gray-900">MailMind</h1>
             <p className="text-[10px] uppercase tracking-widest text-gray-400">By Alien</p>

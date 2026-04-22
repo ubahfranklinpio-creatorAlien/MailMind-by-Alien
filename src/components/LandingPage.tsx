@@ -25,7 +25,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 h-20 px-6 md:px-12 flex items-center justify-between backdrop-blur-md bg-white/40 border-b border-white/60">
         <div className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="MailMind Logo" className="w-10 h-10 rounded-xl object-contain shadow-sm bg-emerald-50" />
+          <img src="/logo.png" alt="MailMind Logo" className="w-10 h-10 rounded-xl object-contain shadow-sm bg-emerald-50" />
           <span className="font-bold text-xl tracking-tight text-gray-900 font-sans">MailMind</span>
         </div>
         
@@ -137,7 +137,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 {/* Mirroring/Reflection effect */}
                 <div className="absolute -inset-10 bg-gradient-to-br from-emerald-400/40 to-cyan-400/40 blur-3xl rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />
                 <img 
-                  src="/logo.jpg" 
+                  src="/logo.png" 
                   alt="3D Glass Envelope" 
                   className="w-[95vw] sm:w-[600px] lg:w-[800px] h-[95vw] sm:h-[600px] lg:h-[800px] max-w-none object-contain drop-shadow-[0_40px_80px_rgba(16,185,129,0.5)] filter contrast-125 brightness-110"
                 />
